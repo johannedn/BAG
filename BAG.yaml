@@ -1,0 +1,27 @@
+name: bag
+channels:
+  - defaults
+dependencies:
+  - python=3.8
+  - numpy
+  - pandas
+  - scikit-learn
+  - tqdm
+  - pyyaml
+
+  - pip
+  - pip:
+      # - torch==2.0.1
+
+      # # PyG stack
+      # - torch-geometric==2.4.0
+      # - torch-scatter==2.1.2
+      # - torch-sparse==0.6.18
+      # - torch-cluster==1.6.3
+      # - torch-spline-conv==1.2.2
+
+      # # temporal graph
+      # - torch-geometric-temporal==0.54.0
+
+      # ML
+      - xgboost==2.1.4
