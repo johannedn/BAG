@@ -202,8 +202,8 @@ def save_results(results, file_id):
         os.mkdir('results/')
     if file_id is None:
         file_id = 0
-        while os.path.exists('results/{}.xlsx'.format(file_id)):
+        while os.path.exists('results/{}.csv'.format(file_id)):
             file_id += 1
-    results.transpose().to_excel('results/{}.xlsx'.format(file_id))
+    results.transpose().to_csv('results/{}.csv'.format(file_id))
     print('save to file ID: {}'.format(file_id))
     return file_id

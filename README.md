@@ -29,6 +29,10 @@ pip install torch-scatter torch-sparse torch-cluster torch-spline-conv -f https:
 
 pip install torch-geometric==2.4.0
 
+### 5. Install Temporal Graph Library
+
+pip install torch-geometric-temporal==0.54.0
+
 
 ## Data Preprocess
 
