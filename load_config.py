@@ -43,6 +43,10 @@ def parse_args():
     parser.add_argument('--node_dim', type=int, default=172, help='maximal length of the input sequence of each node') 
     parser.add_argument('--negative_sample_strategy', type=str, default='random', choices=['random', 'historical', 'inductive'],
                         help='strategy for the negative edge sampling')
+    parser.add_argument('--epochs', type=int, default=None, help='override the number of training epochs for every model')
+    parser.add_argument('--wandb', action='store_true', help='log runs to Weights & Biases')
+    parser.add_argument('--wandb_project', type=str, default='BAG')
+    parser.add_argument('--data_root', type=str, default='/data/dygraph/BAG', help='directory holding the preprocessed static/, discrete/ and continuous/ data')
 
         
     args = parser.parse_args()
@@ -135,6 +139,8 @@ def get_model_config(model):
         model_config = ctdg_model_config.copy()
             
     model_config['model'] = model
+    if args.epochs is not None:
+        model_config['epochs'] = args.epochs
 
     return model_config
 

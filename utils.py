@@ -8,6 +8,7 @@ import random
 import numpy as np
 import pandas as pd
 from load_config import args
+import subprocess, datetime
 
 
 class ContinuousData:
@@ -31,13 +32,13 @@ class Data:
 
     def get_ctdg_data(self, val_ratio=0.2, test_ratio=0.3):
         if self.name not in ['yelp', 'reddit', 'mooc', 'wiki', 'dgraphfin', 'elliptic']:
-            graph_df = pd.read_csv('./data/continuous/{}/{}/ml_{}.csv'.format(self.name, self.anomaly_ratio, self.name))
-            edge_features = np.load('./data/continuous/{}/{}/ml_{}.npy'.format(self.name, self.anomaly_ratio, self.name))
-            node_features = np.load('./data/continuous/{}/{}/ml_{}_node.npy'.format(self.name, self.anomaly_ratio, self.name))
+            ctdg_dir = os.path.join(args.data_root, 'continuous', self.name, str(self.anomaly_ratio))
         else:
-            graph_df = pd.read_csv('./data/continuous/{}/ml_{}.csv'.format(self.name, self.name))
-            edge_features = np.load('./data/continuous/{}/ml_{}.npy'.format(self.name, self.name))
-            node_features = np.load('./data/continuous/{}/ml_{}_node.npy'.format(self.name, self.name))    
+            ctdg_dir = os.path.join(args.data_root, 'continuous', self.name)
+        graph_df = pd.read_csv(os.path.join(ctdg_dir, 'ml_{}.csv'.format(self.name)))
+        edge_features = np.load(os.path.join(ctdg_dir, 'ml_{}.npy'.format(self.name)))
+        node_features = np.load(os.path.join(ctdg_dir, 'ml_{}_node.npy'.format(self.name)))
+
         
         NODE_FEAT_DIM = EDGE_FEAT_DIM = n = args.node_dim
 
@@ -202,8 +203,15 @@ def save_results(results, file_id):
         os.mkdir('results/')
     if file_id is None:
         file_id = 0
-        while os.path.exists('results/{}.xlsx'.format(file_id)):
+        while os.path.exists('results/{}.csv'.format(file_id)):
             file_id += 1
-    results.transpose().to_excel('results/{}.xlsx'.format(file_id))
+    results = results.copy()
+    try:
+        results['commit'] = subprocess.check_output(
+            ['git', 'describe', '--always', '--dirty'], stderr=subprocess.DEVNULL).decode().strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        results['commit'] = 'unknown'
+    results['date'] = datetime.datetime.now().isoformat(timespec='seconds')
+    results.transpose().to_csv('results/{}.csv'.format(file_id))
     print('save to file ID: {}'.format(file_id))
     return file_id

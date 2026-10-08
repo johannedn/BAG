@@ -32,7 +32,9 @@ pip install torch-geometric==2.4.0
 
 ## Data Preprocess
 
-Download the [original datasets](https://drive.google.com/drive/folders/18MlNwXCyv-I8VIH57NkIFKvqTWl5pqvJ?usp=drive_link) to `./data/ori`.
+Download the [original datasets](https://drive.google.com/drive/folders/18MlNwXCyv-I8VIH57NkIFKvqTWl5pqvJ?usp=drive_link) to `/data/dygraph/original`. This folder is shared with other projects, so don't put BAG-specific files there.
+
+Preprocessed data lives under `/data/dygraph/BAG` by default. Use `--original_root` and `--prefix` (for `prepare_data.py`) or `--data_root` (for `benchmark.py`) to point somewhere else.
 
 Run `prepare_data.py` to preprocess the raw datasets.
 
@@ -42,9 +44,9 @@ python prepare_data.py --names wiki
 ```
 The processed outputs will be saved in the following directories according to graph type:
 
-- **Static graph:** `./data/static/wiki`
-- **Discrete-time dynamic graph:** `./data/discrete/wiki`
-- **Continuous-time dynamic graph:** `./data/continuous/wiki`
+- **Static graph:** `/data/dygraph/BAG/static/wiki`
+- **Discrete-time dynamic graph:** `/data/dygraph/BAG/discrete/wiki`
+- **Continuous-time dynamic graph:** `/data/dygraph/BAG/continuous/wiki`
 
 ## Model Training
 

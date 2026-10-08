@@ -16,10 +16,10 @@ import argparse
             
             
 class Dataset:
-    def __init__(self, name, prefix):
+    def __init__(self, name, prefix, original_root):
         self.name = name
         self.prefix = prefix
-        self.ori_path = f"{prefix}{'ori/'}{name}"
+        self.ori_path = os.path.join(original_root, name)
         self.static_path = Path(f"{prefix}{'static/'}{name}")
         self.dtdg_path = Path(f"{prefix}{'discrete/'}{name}")
         self.dtdg_path.mkdir(parents=True, exist_ok=True)
@@ -378,7 +378,8 @@ def get_args():
 
     parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility')
     parser.add_argument('--names', nargs='+', default=['wiki'], help='Dataset names to process')
-    parser.add_argument('--prefix', type=str, default='./data/', help='Dataset root directory')
+    parser.add_argument('--prefix', type=str, default='/data/dygraph/BAG/', help='Root for preprocessed datasets (keep the trailing slash)')
+    parser.add_argument('--original_root', type=str, default='/data/dygraph/original', help='Directory holding the raw downloaded datasets, shared across projects')
     parser.add_argument('--feature_dim', type=int, default=172, help='Node feature dimension')
     parser.add_argument('--snap_num', type=int, default=10, help='Total number of snapshots (for DTDG path)')
     parser.add_argument('--train_snap', type=int, default=10,  help='Number of training snapshots')
@@ -404,6 +405,7 @@ if __name__ == '__main__':
             dataset = Dataset(
                 name=name,
                 prefix=args.prefix,
+                original_root=args.original_root,
             )
 
             data = dataset.process_data(
