@@ -110,9 +110,9 @@ class Dataset:
             val_data, test_data = train_test_split(temp_data, test_size=test_ratio / (val_ratio + test_ratio), shuffle=False)
             
             save_static_data(self.static_path, self.name, data, train_data, val_data, test_data, feature_dim, 0)    
-            # save_dtdg_data(self.dtdg_path, self.name, data, train_data, val_data, test_data, train_snap, val_snap, test_snap, feature_dim, 0)    
-            # save_ctdg_data(self.ctdg_path, self.name, data, feature_dim, 0)        
-            
+            save_dtdg_data(self.dtdg_path, self.name, data, train_data, val_data, test_data, train_snap, val_snap, test_snap, feature_dim, 0)    
+            save_ctdg_data(self.ctdg_path, self.name, data, feature_dim, 0)        
+        
         return data
 
 
