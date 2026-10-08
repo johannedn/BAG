@@ -80,7 +80,8 @@ class Dataset:
         data[['source', 'target']] = edges
                         
         # For unlabeled data
-        if self.name not in['wiki', 'reddit', 'yelp']:
+        # mooc has organic labels too; upstream left it out, which zeroed its labels and injected synthetic anomalies
+        if self.name not in['wiki', 'reddit', 'mooc', 'yelp']:
             data['label'] = 0             
             data = data.loc[:, ['source', 'target', 'label', 'timestamp']]
             
