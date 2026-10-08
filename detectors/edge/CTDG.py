@@ -70,10 +70,8 @@ class CTDGDetector(BaseDetector):
             backbone = FreeDyG(node_raw_features=self.node_raw_features, edge_raw_features=self.edge_raw_features, neighbor_sampler=self.train_neighbor_sampler,
                                          time_feat_dim=args.time_feat_dim, channel_embedding_dim=args.channel_embedding_dim,
                                          num_layers=args.num_layers, dropout=model_config['dropout'], max_input_sequence_length=args.max_input_sequence_length, 
-                                         device=train_config['device'])                
+                                         device=train_config['device'])
 
-        gnn = globals()[model_config['model']]
-        backbone = gnn(**model_config).to(self.device)        
         gdn = GDN(self.device)     ##only for SAD
         self.scorer = Scorer(input_dim=self.node_raw_features.shape[1], hidden_dim=self.model_config['hidden_dim'], output_dim=1)
         
