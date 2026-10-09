@@ -204,6 +204,7 @@ def save_results(results, file_id):
     if file_id is None:
         file_id = 0
         while os.path.exists('results/{}.csv'.format(file_id)):
+        while os.path.exists('results/{}.csv'.format(file_id)):
             file_id += 1
     results = results.copy()
     try:
