@@ -19,6 +19,18 @@ from models.ctdg.utils.utils import get_neighbor_sampler, NegativeEdgeSampler
 from load_config import args
 from models.ctdg.models.modules import Scorer
 from models.ctdg.utils.DataLoader import get_idx_data_loader
+import wandb
+
+
+def log_epoch(epoch, train_losses, val_score, test_score=None):
+    # only logs when benchmark.py started a run with --wandb
+    if wandb.run is None:
+        return
+    log = {"epoch": epoch, "train/loss": np.mean(train_losses)}
+    log.update({f"val/{k}": v for k, v in val_score.items()})
+    if test_score is not None:
+        log.update({f"test/{k}": v for k, v in test_score.items()})
+    wandb.log(log)
 
 
 
@@ -70,10 +82,8 @@ class CTDGDetector(BaseDetector):
             backbone = FreeDyG(node_raw_features=self.node_raw_features, edge_raw_features=self.edge_raw_features, neighbor_sampler=self.train_neighbor_sampler,
                                          time_feat_dim=args.time_feat_dim, channel_embedding_dim=args.channel_embedding_dim,
                                          num_layers=args.num_layers, dropout=model_config['dropout'], max_input_sequence_length=args.max_input_sequence_length, 
-                                         device=train_config['device'])                
+                                         device=train_config['device'])
 
-        gnn = globals()[model_config['model']]
-        backbone = gnn(**model_config).to(self.device)        
         gdn = GDN(self.device)     ##only for SAD
         self.scorer = Scorer(input_dim=self.node_raw_features.shape[1], hidden_dim=self.model_config['hidden_dim'], output_dim=1)
         
@@ -100,7 +110,7 @@ class CTDGDetector(BaseDetector):
                 self.model[0].set_neighbor_sampler(self.train_neighbor_sampler)
                 
             train_losses = []
-            train_idx_data_loader_tqdm = tqdm(train_idx_data_loader, ncols=120)
+            train_idx_data_loader_tqdm = tqdm(train_idx_data_loader, ncols=120, leave=False)
             
             for batch_idx, train_data_indices in enumerate(train_idx_data_loader_tqdm):
                 train_data_indices = train_data_indices.numpy()
@@ -233,8 +243,9 @@ class CTDGDetector(BaseDetector):
             
             print('Epoch {}, Loss {:.4f}, Val AUC {:.4f}, PRC {:.4f}, RecK {:.4f}, F1 {:.4f}, test AUC {:.4f}, PRC {:.4f}, RecK {:.4f}, F1 {:.4f}'.format(
                 e, np.mean(train_losses), val_score['AUROC'], val_score['AUPRC'], val_score['RecK'], val_score['F1'],
-                test_score['AUROC'], test_score['AUPRC'], test_score['RecK'], test_score['F1']))      
-                                                              
+                test_score['AUROC'], test_score['AUPRC'], test_score['RecK'], test_score['F1']))
+            log_epoch(e, train_losses, val_score, test_score)
+
             if val_score[self.train_config['metric']] > self.best_score:
                 self.patience_knt = 0
                 self.best_score = val_score[self.train_config['metric']] 
@@ -260,7 +271,7 @@ class CTDGDetector(BaseDetector):
         probs_ls, y_ls,  = [], []
         
         with torch.no_grad():
-            evaluate_idx_data_loader_tqdm = tqdm(evaluate_idx_data_loader, ncols=120)
+            evaluate_idx_data_loader_tqdm = tqdm(evaluate_idx_data_loader, ncols=120, leave=False)
             for batch_idx, evaluate_data_indices in enumerate(evaluate_idx_data_loader_tqdm):
                 evaluate_data_indices = evaluate_data_indices.numpy()
                 batch_src_node_ids, batch_dst_node_ids, batch_node_interact_times, batch_edge_ids, batch_labels = \
@@ -381,7 +392,7 @@ class CTDGDetector2(BaseDetector):
             self.model[0].memory_bank.__init_memory_bank__()
                                 
             train_losses = []
-            train_idx_data_loader_tqdm = tqdm(train_idx_data_loader, ncols=120)
+            train_idx_data_loader_tqdm = tqdm(train_idx_data_loader, ncols=120, leave=False)
             
             for batch_idx, train_data_indices in enumerate(train_idx_data_loader_tqdm):
                 train_data_indices = train_data_indices.numpy()
@@ -484,7 +495,10 @@ class CTDGDetector2(BaseDetector):
                 print('Epoch {}, Loss {:.4f}, Val AUC {:.4f}, PRC {:.4f}, RecK {:.4f}, F1 {:.4f}, test AUC {:.4f}, PRC {:.4f}, RecK {:.4f}, F1 {:.4f}'.format(
                     e, np.mean(train_losses), val_score['AUROC'], val_score['AUPRC'], val_score['RecK'], val_score['F1'],
                     test_score['AUROC'], test_score['AUPRC'], test_score['RecK'], test_score['F1']))
+                log_epoch(e, train_losses, val_score, test_score)
             else:
+                # test set is only evaluated when validation improves
+                log_epoch(e, train_losses, val_score)
                 self.patience_knt += 1
                 if self.patience_knt > self.model_config['patience']:
                     break  
@@ -506,7 +520,7 @@ class CTDGDetector2(BaseDetector):
         probs_ls, y_ls, = [], []
 
         with torch.no_grad():
-            evaluate_idx_data_loader_tqdm = tqdm(evaluate_idx_data_loader, ncols=120)
+            evaluate_idx_data_loader_tqdm = tqdm(evaluate_idx_data_loader, ncols=120, leave=False)
             for batch_idx, evaluate_data_indices in enumerate(evaluate_idx_data_loader_tqdm):
                 evaluate_data_indices = evaluate_data_indices.numpy()
                 batch_src_node_ids, batch_dst_node_ids, batch_node_interact_times, batch_edge_ids, batch_labels = \

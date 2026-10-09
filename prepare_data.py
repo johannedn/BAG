@@ -16,10 +16,10 @@ import argparse
             
             
 class Dataset:
-    def __init__(self, name, prefix):
+    def __init__(self, name, prefix, original_root):
         self.name = name
         self.prefix = prefix
-        self.ori_path = f"{prefix}{'ori/'}{name}"
+        self.ori_path = os.path.join(original_root, name)
         self.static_path = Path(f"{prefix}{'static/'}{name}")
         self.dtdg_path = Path(f"{prefix}{'discrete/'}{name}")
         self.dtdg_path.mkdir(parents=True, exist_ok=True)
@@ -80,7 +80,8 @@ class Dataset:
         data[['source', 'target']] = edges
                         
         # For unlabeled data
-        if self.name not in['wiki', 'reddit', 'yelp']:
+        # mooc has organic labels too; upstream left it out, which zeroed its labels and injected synthetic anomalies
+        if self.name not in['wiki', 'reddit', 'mooc', 'yelp']:
             data['label'] = 0             
             data = data.loc[:, ['source', 'target', 'label', 'timestamp']]
             
@@ -109,9 +110,9 @@ class Dataset:
             val_data, test_data = train_test_split(temp_data, test_size=test_ratio / (val_ratio + test_ratio), shuffle=False)
             
             save_static_data(self.static_path, self.name, data, train_data, val_data, test_data, feature_dim, 0)    
-            # save_dtdg_data(self.dtdg_path, self.name, data, train_data, val_data, test_data, train_snap, val_snap, test_snap, feature_dim, 0)    
-            # save_ctdg_data(self.ctdg_path, self.name, data, feature_dim, 0)        
-            
+            save_dtdg_data(self.dtdg_path, self.name, data, train_data, val_data, test_data, train_snap, val_snap, test_snap, feature_dim, 0)    
+            save_ctdg_data(self.ctdg_path, self.name, data, feature_dim, 0)        
+        
         return data
 
 
@@ -377,7 +378,8 @@ def get_args():
 
     parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility')
     parser.add_argument('--names', nargs='+', default=['wiki'], help='Dataset names to process')
-    parser.add_argument('--prefix', type=str, default='./data/', help='Dataset root directory')
+    parser.add_argument('--prefix', type=str, default='/data/dygraph/BAG/', help='Root for preprocessed datasets (keep the trailing slash)')
+    parser.add_argument('--original_root', type=str, default='/data/dygraph/original', help='Directory holding the raw downloaded datasets, shared across projects')
     parser.add_argument('--feature_dim', type=int, default=172, help='Node feature dimension')
     parser.add_argument('--snap_num', type=int, default=10, help='Total number of snapshots (for DTDG path)')
     parser.add_argument('--train_snap', type=int, default=10,  help='Number of training snapshots')
@@ -403,6 +405,7 @@ if __name__ == '__main__':
             dataset = Dataset(
                 name=name,
                 prefix=args.prefix,
+                original_root=args.original_root,
             )
 
             data = dataset.process_data(
